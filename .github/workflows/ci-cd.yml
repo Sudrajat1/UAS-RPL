@@ -3,7 +3,7 @@ name: CI/CD untuk Aplikasi Pemula
 
 # 2. Kapan alur kerja ini akan berjalan:
 # - Ketika ada commit yang dikirim (push) ke branch main
-# - Ketika ada permintaan tarik (pull request) ke branch main
+# - Ketika ada ada permintaan tarik (pull request) ke branch main
 on:
   push:
     branches: [ main ]
@@ -55,7 +55,6 @@ jobs:
 
       # Langkah 6: Bangun image Docker dan unggah ke GitHub Packages
       - name: Bangun & unggah image Docker
-        uses: actions/setup-node@v4
         uses: docker/build-push-action@v5
         with:
           context: .  # Lokasi Dockerfile (di direktori utama)
