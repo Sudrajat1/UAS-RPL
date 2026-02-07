@@ -1,0 +1,64 @@
+# 1. Nama alur kerja CI/CD kita – akan muncul di tab Actions GitHub
+name: CI/CD untuk Aplikasi Pemula
+
+# 2. Kapan alur kerja ini akan berjalan:
+# - Ketika ada commit yang dikirim (push) ke branch main
+# - Ketika ada permintaan tarik (pull request) ke branch main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# 3. Job yang akan dijalankan – kita buat satu job dengan nama "build-and-deploy"
+jobs:
+  build-and-deploy:
+    # Jalankan job di komputer virtual dengan sistem Ubuntu
+    runs-on: ubuntu-latest
+
+    # 4. Langkah-langkah yang akan dilakukan dalam job ini
+    steps:
+      # Langkah 1: Ambil kode kita dari repository GitHub ke komputer virtual
+      - name: Ambil kode dari GitHub
+        uses: actions/checkout@v4
+
+      # Langkah 2: Pasang Node.js di komputer virtual
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18  # Pakai versi yang sama dengan kita gunakan
+          cache: 'npm'      # Simpan cache dependensi agar lebih cepat
+
+      # Langkah 3: Install dependensi dan jalankan tes aplikasi
+      - name: Install dependensi & jalankan tes
+        run: |
+          npm install
+          npm test
+
+      # Langkah 4: Login ke GitHub Packages (tempat menyimpan image Docker kita)
+      - name: Login ke GitHub Packages
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}  # Nama pengguna GitHub kita (otomatis diambil)
+          password: ${{ secrets.GITHUB_TOKEN }}  # Token akses otomatis dibuat oleh GitHub
+
+      # Langkah 5: Siapkan nama dan tag untuk image Docker kita
+      - name: Siapkan informasi image
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/app-pemula-container
+          tags: |
+            type=ref,event=branch  # Tag dengan nama branch (misal "main")
+            type=sha               # Tag dengan kode unik commit (agar bisa bedakan versi)
+
+      # Langkah 6: Bangun image Docker dan unggah ke GitHub Packages
+      - name: Bangun & unggah image Docker
+        uses: actions/setup-node@v4
+        uses: docker/build-push-action@v5
+        with:
+          context: .  # Lokasi Dockerfile (di direktori utama)
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}  # Hanya unggah kalau ada push ke branch main
+          tags: ${{ steps.meta.outputs.tags }}  # Gunakan nama/tag dari langkah sebelumnya
+          labels: ${{ steps.meta.outputs.labels }}  # Tambahkan label informasi ke image
