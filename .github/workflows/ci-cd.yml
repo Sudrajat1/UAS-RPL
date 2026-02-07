@@ -1,7 +1,7 @@
 # 1. Nama alur kerja CI/CD – akan muncul di tab Actions GitHub
 name: CI/CD untuk Aplikasi Pemula
 
-# 2. Kapan alur kerja ini berjalan:
+# 2. Kapan alur kerja ini berjalan:2
 # - Ketika ada commit yang dikirim (push) ke branch main
 # - Ketika ada permintaan tarik (pull request) ke branch main
 on:
