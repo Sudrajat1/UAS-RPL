@@ -1,7 +1,7 @@
-# 1. Nama alur kerja CI/CD kita – akan muncul di tab Actions GitHub
+# 1. Nama alur kerja CI/CD – akan muncul di tab Actions GitHub
 name: CI/CD untuk Aplikasi Pemula
 
-# 2. Kapan alur kerja ini akan berjalan:
+# 2. Kapan alur kerja ini berjalan:
 # - Ketika ada commit yang dikirim (push) ke branch main
 # - Ketika ada permintaan tarik (pull request) ke branch main
 on:
@@ -10,54 +10,55 @@ on:
   pull_request:
     branches: [ main ]
 
-# 3. Job yang akan dijalankan – kita buat satu job dengan nama "build-and-deploy"
+# 3. Job yang akan dijalankan – satu job dengan nama "build-and-deploy"
 jobs:
   build-and-deploy:
-    # Jalankan job di komputer virtual dengan sistem Ubuntu
+    # Jalankan di komputer virtual Ubuntu terbaru
     runs-on: ubuntu-latest
 
-    # 4. Langkah-langkah yang akan dilakukan dalam job ini
+    # 4. Langkah-langkah dalam job
     steps:
-      # Langkah 1: Ambil kode kita dari repository GitHub ke komputer virtual
+      # Langkah 1: Ambil kode dari repository GitHub
       - name: Ambil kode dari GitHub
         uses: actions/checkout@v4
 
-      # Langkah 2: Pasang Node.js di komputer virtual
-      - name: Siapkan Node.js
+      # Langkah 2: Pasang Node.js dengan cache dependensi
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18  # Pakai versi yang sama dengan kita gunakan
-          cache: 'npm'      # Simpan cache dependensi agar lebih cepat
+          node-version: 18
+          cache: 'npm'
 
-      # Langkah 3: Install dependensi dan jalankan tes aplikasi
+      # Langkah 3: Install dependensi dan jalankan tes
       - name: Install dependensi & jalankan tes
         run: |
           npm install
           npm test
 
-      # Langkah 4: Login ke GitHub Packages (tempat menyimpan image Docker kita)
+      # Langkah 4: Login ke GitHub Packages
       - name: Login ke GitHub Packages
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}  # Nama pengguna GitHub kita (otomatis diambil)
-          password: ${{ secrets.GITHUB_TOKEN }}  # Token akses otomatis dibuat oleh GitHub
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Langkah 5: Siapkan nama dan tag untuk image Docker kita
+      # Langkah 5: Siapkan nama dan tag image Docker
       - name: Siapkan informasi image
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/app-pemula-container
           tags: |
-            type=ref,event=branch  # Tag dengan nama branch (misal "main")
-            type=sha               # Tag dengan kode unik commit (agar bisa bedakan versi)
+            type=ref,event=branch
+            type=sha
 
-      # Langkah 6: Bangun image Docker dan unggah ke GitHub Packages
+      # Langkah 6: Bangun & unggah image Docker (kesalahan diperbaiki)
       - name: Bangun & unggah image Docker
         uses: docker/build-push-action@v5
         with:
-          context: .  # Lokasi Dockerfile (di direktori utama)
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}  # Hanya unggah kalau ada push ke branch main
-          tags: ${{ steps.meta.outputs.tags }}  # Gunakan nama/tag dari langkah sebelumnya
-          labels: ${{ steps.meta.outputs.labels }}  # Tambahkan label informasi ke image
+          context: .
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          
