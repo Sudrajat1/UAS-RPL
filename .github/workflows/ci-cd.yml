@@ -10,28 +10,26 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch: # Tambahkan ini untuk bisa jalankan secara manual
+  workflow_dispatch: # Bisa jalankan secara manual
 
-# 3. Job yang akan dijalankan – satu job dengan nama "build-and-deploy"
+# 3. Job yang akan dijalankan
 jobs:
   build-and-deploy:
-    # Jalankan di komputer virtual Ubuntu terbaru
     runs-on: ubuntu-latest
 
-    # 4. Langkah-langkah dalam job
     steps:
-      # Langkah 1: Ambil kode dari repository GitHub
+      # Langkah 1: Ambil kode dari GitHub
       - name: Ambil kode dari GitHub
         uses: actions/checkout@v4
 
-      # Langkah 2: Pasang Node.js dengan cache dependensi
+      # Langkah 2: Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
 
-      # Langkah 3: Install dependensi dan jalankan tes
+      # Langkah 3: Install dependensi & jalankan tes
       - name: Install dependensi & jalankan tes
         run: |
           npm install
@@ -45,18 +43,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Langkah 5: Siapkan nama dan tag image Docker (diperbaiki)
+      # Langkah 5: Siapkan informasi image (nama diubah jadi uas-rpl)
       - name: Siapkan informasi image
         id: meta
         uses: docker/metadata-action@v5
         with:
-          # Gunakan repository_owner agar nama image sesuai untuk akun pribadi
-          images: ghcr.io/${{ github.repository_owner }}/uas-rpl-container
+          images: ghcr.io/${{ github.repository_owner }}/uas-rpl
           tags: |
             type=ref,event=branch
             type=sha
 
-      # Langkah 6: Bangun & unggah image Docker (sudah benar)
+      # Langkah 6: Bangun & unggah image Docker
       - name: Bangun & unggah image Docker
         uses: docker/build-push-action@v5
         with:
