@@ -4,11 +4,13 @@ name: CI/CD untuk Aplikasi Pemula
 # 2. Kapan alur kerja ini berjalan:
 # - Ketika ada commit yang dikirim (push) ke branch main
 # - Ketika ada permintaan tarik (pull request) ke branch main
+# - Dapat dijalankan secara manual melalui tab Actions
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: # Tambahkan ini untuk bisa jalankan secara manual
 
 # 3. Job yang akan dijalankan – satu job dengan nama "build-and-deploy"
 jobs:
@@ -43,17 +45,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Langkah 5: Siapkan nama dan tag image Docker
+      # Langkah 5: Siapkan nama dan tag image Docker (diperbaiki)
       - name: Siapkan informasi image
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/app-pemula-container
+          # Gunakan repository_owner agar nama image sesuai untuk akun pribadi
+          images: ghcr.io/${{ github.repository_owner }}/app-pemula-container
           tags: |
             type=ref,event=branch
             type=sha
 
-      # Langkah 6: Bangun & unggah image Docker (kesalahan diperbaiki)
+      # Langkah 6: Bangun & unggah image Docker (sudah benar)
       - name: Bangun & unggah image Docker
         uses: docker/build-push-action@v5
         with:
@@ -61,4 +64,3 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
