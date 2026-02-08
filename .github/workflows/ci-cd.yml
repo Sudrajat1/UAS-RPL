@@ -51,7 +51,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           # Gunakan repository_owner agar nama image sesuai untuk akun pribadi
-          images: ghcr.io/${{ github.repository_owner }}/app-pemula-container
+          images: ghcr.io/${{ github.repository_owner }}/uas-rpl-container
           tags: |
             type=ref,event=branch
             type=sha
